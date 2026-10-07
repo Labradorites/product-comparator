@@ -1,6 +1,17 @@
 # SSD picker: grill questions
 
-Write your answer under each **Your answer** line. Q1 is settled: the first test checks demand.
+Write your answer under each **Your answer** line.
+
+---
+
+## Q1 - What does the riskiest-bet test actually prove?
+
+The brief says the bet is "people feel overloaded enough to want help deciding". The pass mark was "a real product exists at a comparable price". That checks whether the data can be found. It doesn't check whether anyone wants the help. Which one do you want to learn first: demand, or feasibility of the data?
+
+**Recommended:** Test demand first. Show 5 to 10 laptop upgraders a hand-picked recommendation and ask whether they'd have used it instead of their own research. Keep the "real product at a good price" check as a second, cheaper test of feasibility.
+
+**Your answer:**
+sure lets check for demand
 
 ---
 
