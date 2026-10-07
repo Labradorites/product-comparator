@@ -1,13 +1,10 @@
 import { buildSystemPrompt } from "./prompt.js";
 import { toolDefinitions, executeTool } from "./tools.js";
+import { callModel } from "./llm.js";
 
-const LLM_BASE_URL = "https://opencode.ai/zen/go/v1";
-const LLM_MODEL = "glm-5.3-flash";
-
-const LLM_TIMEOUT_MS = 20_000;
 const MAX_ROUNDS = 4;
 const MAX_TOOL_CALLS_PER_ROUND = 2;
-const TURN_DEADLINE_MS = 45_000;
+const TURN_DEADLINE_MS = 90_000;
 
 const GIVE_UP_REPLY = "I could not finish that search. Try giving the type, capacity and budget again.";
 const EMPTY_REPLY = "I did not catch that. What SSD are you looking for?";
@@ -33,7 +30,7 @@ export async function runLoop(history, message, env) {
   let results = null;
 
   for (let round = 0; round < MAX_ROUNDS && Date.now() < deadline; round++) {
-    const assistant = await callModel(messages, env, sessionId);
+    const assistant = await callModel(messages, env, sessionId, toolDefinitions);
     messages.push(assistant);
 
     const toolCalls = assistant.tool_calls ?? [];
@@ -43,7 +40,7 @@ export async function runLoop(history, message, env) {
     }
 
     for (const [i, call] of toolCalls.entries()) {
-      const { toolMessage, data } = runToolCall(call, i, round);
+      const { toolMessage, data } = await runToolCall(call, i, round, env);
       messages.push(toolMessage);
       if (data) results = data;
     }
@@ -64,7 +61,7 @@ function finish(reply, results, message) {
 }
 
 /** Always returns a tool message, so the model can recover from a bad call. */
-function runToolCall(call, index, round) {
+async function runToolCall(call, index, round, env) {
   call.id ??= `call_${round}_${index}`;
   const reply = (result) => ({ role: "tool", tool_call_id: call.id, content: JSON.stringify(result) });
 
@@ -77,36 +74,8 @@ function runToolCall(call, index, round) {
     return { toolMessage: reply({ error: "Invalid tool call: arguments must be a JSON object." }) };
   }
 
-  const { result, data } = executeTool(name, args);
+  const { result, data } = await executeTool(name, args, env);
   return { toolMessage: reply(result), data };
-}
-
-async function callModel(messages, env, sessionId) {
-  const res = await fetch(`${LLM_BASE_URL}/chat/completions`, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      authorization: `Bearer ${env.OPENCODE_API_KEY}`,
-      "x-opencode-session": sessionId,
-    },
-    body: JSON.stringify({ model: LLM_MODEL, messages, tools: toolDefinitions }),
-    signal: AbortSignal.timeout(LLM_TIMEOUT_MS),
-  });
-
-  if (!res.ok) {
-    throw new Error(`LLM returned ${res.status}: ${await res.text()}`);
-  }
-
-  const data = await res.json();
-  const message = data?.choices?.[0]?.message;
-  if (!message) {
-    throw new Error(`LLM returned no message: ${JSON.stringify(data).slice(0, 500)}`);
-  }
-  return {
-    role: "assistant",
-    content: message.content ?? null,
-    ...(message.tool_calls?.length ? { tool_calls: message.tool_calls } : {}),
-  };
 }
 
 /** Returns a plain object, or null if the model sent something else. */

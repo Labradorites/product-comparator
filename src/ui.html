@@ -39,7 +39,7 @@
   </form>
   <div id="reply" aria-live="polite"></div>
   <div id="results"></div>
-  <p class="note">Prices, sources and Trustpilot scores are sample data until real snapshots are added.</p>
+  <p class="note">Prices come from a live web search and are checked against the page text, but they can be out of date. Confirm on the seller's page before buying. Trustpilot scores are not available yet.</p>
 </main>
 <script>
   const form = document.getElementById("form");
@@ -54,7 +54,7 @@
     const message = box.value.trim();
     if (!message) return;
     go.disabled = true;
-    replyEl.textContent = "Searching…";
+    replyEl.textContent = "Searching the web. This can take up to a minute…";
     try {
       const res = await fetch("/recommend", {
         method: "POST",
@@ -109,7 +109,7 @@
         a.target = "_blank";
         a.rel = "noopener noreferrer";
         li.append(a);
-        li.append(el("span", `$${o.price_sgd} · Trustpilot ${o.trustpilot} · ${o.checked_at}${o.sample ? " · sample" : ""}`, "meta"));
+        li.append(el("span", `$${o.price_sgd} · found ${new Date(o.retrieved_at).toLocaleString()}`, "meta"));
         ul.append(li);
       }
       card.append(ul);

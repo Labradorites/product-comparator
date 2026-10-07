@@ -17,4 +17,12 @@ Plain JavaScript (ESM) on a Cloudflare Worker. No runtime dependencies, no build
 - Do not add runtime dependencies or a build step.
 
 ## Data
-`src/catalogue.js` is **sample data**: real model names, placeholder prices, Trustpilot scores and URLs, each offer flagged `sample: true`. Replace with real manual snapshots before any user test. Price history (story 3) is not built yet.
+There is no stored catalogue. Offers come from a live web search per request (`src/research.js`):
+1. Tavily searches the web (platform-neutral queries, so any Singapore retailer can surface).
+2. The model extracts candidate offers from the result text as JSON.
+3. **Code grounds every candidate** before it is shown: its URL must be in the search results, and that page's text must show the price (with a currency marker), the capacity and evidence of the type. Anything else is dropped. The retailer name comes from the URL host, never from the model.
+4. `filterAndRank` then applies compatibility and budget.
+
+Prices are unverified web data: show the URL and retrieval time. Trustpilot scores are not built yet (`trustpilot` is `null`). Price history (story 3) is not built yet.
+
+Secrets: `OPENCODE_API_KEY` and `TAVILY_API_KEY`.

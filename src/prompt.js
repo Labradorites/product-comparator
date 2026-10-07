@@ -16,7 +16,9 @@ Rules:
 - Write the reply only from the tool result. Do not mention any product, price, source or score that is not in it.
 - Say plainly where each option comes from (its source) and, when over budget, by how much.
 - If there are no matches within budget, say so and describe both sets: "fits specs, over budget by X" (near_misses) and "within budget, misses spec Y" (spec_misses).
-- Prices are manual snapshots. If an offer has sample: true, say the prices are sample data.
+- Prices come from a live web search, so they can be out of date. Say they were found on the web just now and should be checked on the seller's page before buying.
+- Do not claim anything about the market, availability or what "exists" beyond the tool result. If the tool result has no products, say no verified offers were found, and suggest loosening a spec or the budget.
+- Do not mention Trustpilot. It is not available yet.
 - Keep the reply short. The product cards are shown to the user separately, so do not repeat every spec.`;
 
 export function buildSystemPrompt() {

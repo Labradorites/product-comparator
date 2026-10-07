@@ -1,5 +1,6 @@
-import { catalogue, TYPES, FORM_FACTORS, INTERFACES } from "./catalogue.js";
+import { TYPES, FORM_FACTORS, INTERFACES } from "./specs.js";
 import { filterAndRank } from "./search.js";
+import { researchSsds } from "./research.js";
 
 export const toolDefinitions = [
   {
@@ -7,7 +8,7 @@ export const toolDefinitions = [
     function: {
       name: "search_ssds",
       description:
-        "Search the SSD catalogue. Only call this once you know the type, form factor, interface and capacity. Returns matches within budget, near misses over budget, and products that miss on capacity.",
+        "Search the web for current SSD offers in Singapore that fit the specifications. Only call this once you know the type, form factor, interface and capacity. Returns matches within budget, near misses over budget, and products that miss on capacity. Slow (up to about 30 seconds), so call it once per request.",
       parameters: {
         type: "object",
         properties: {
@@ -27,12 +28,12 @@ export const toolDefinitions = [
  * Run a tool. Returns { result } for the model, plus { data } for the client
  * when the call produced results to show. Errors come back as { result: { error } }.
  */
-export function executeTool(name, args) {
+export async function executeTool(name, args, env) {
   if (name !== "search_ssds") return { result: { error: `Unknown tool: ${name}` } };
-  return searchSsds(args);
+  return searchSsds(args, env);
 }
 
-function searchSsds(args) {
+async function searchSsds(args, env) {
   const error = validateFilters(args);
   if (error) return { result: { error } };
 
@@ -43,8 +44,18 @@ function searchSsds(args) {
     capacity_gb: args.capacity_gb,
     ...(typeof args.budget_sgd === "number" ? { budget_sgd: args.budget_sgd } : {}),
   };
-  const found = filterAndRank(catalogue, filters);
-  const data = { filters, ...found };
+
+  let research;
+  try {
+    research = await researchSsds(filters, env);
+  } catch (err) {
+    console.error("research failed:", err);
+    return { result: { error: "Product search is unavailable right now. Tell the user to try again later." } };
+  }
+
+  // Compatibility is decided here, in code, over the grounded products.
+  const found = filterAndRank(research.products, filters);
+  const data = { filters, ...found, research: research.research };
   return { result: data, data };
 }
 
