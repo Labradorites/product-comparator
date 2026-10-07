@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="none" role="img" aria-label="SSD picker">
+  <rect width="1024" height="1024" rx="229" fill="#000000"/>
+  <g transform="translate(159 154) scale(11.2)">
+    <rect x="7" y="22" width="40" height="20" rx="4" stroke="#8052ff" stroke-width="3"/>
+    <path d="M47 26.5h7M47 32h7M47 37.5h7" stroke="#8052ff" stroke-width="2.6" stroke-linecap="round"/>
+    <path d="M14.5 37L20 27l5.5 10z" fill="#ffb829"/>
+  </g>
+</svg>
