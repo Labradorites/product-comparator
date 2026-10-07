@@ -4,57 +4,155 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SSD picker</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' fill='none'%3E%3Crect width='64' height='64' rx='14' fill='%23000'/%3E%3Crect x='5' y='19' width='42' height='26' rx='5' stroke='%238052ff' stroke-width='6'/%3E%3Cpath d='M47 27h10M47 37h10' stroke='%238052ff' stroke-width='6'/%3E%3Cpath d='M13 39L21 25l8 14z' fill='%23ffb829'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
-  :root { --bg:#fafafa; --fg:#1a1a1a; --muted:#666; --card:#fff; --line:#ddd; --accent:#1f6feb; --warn:#b45309; }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg:#121212; --fg:#eee; --muted:#9a9a9a; --card:#1c1c1c; --line:#333; --accent:#5aa2ff; --warn:#f0a84b; }
-  }
-  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.45 system-ui, sans-serif; }
-  main { max-width:720px; margin:0 auto; padding:24px 16px 64px; }
-  h1 { font-size:1.4rem; margin:0 0 4px; }
-  p.sub { color:var(--muted); margin:0 0 16px; }
-  form { display:flex; gap:8px; }
-  input { flex:1; padding:10px 12px; font:inherit; border:1px solid var(--line); border-radius:8px; background:var(--card); color:var(--fg); }
-  button { padding:10px 16px; font:inherit; border:0; border-radius:8px; background:var(--accent); color:#fff; cursor:pointer; }
+  :root { --bg:#04060c; --fg:#eaf6ff; --muted:#9db4c6; --line:#1b2b3b; --accent:#7fe8ff; --warn:#f0a84b; --mono:"JetBrains Mono", ui-monospace, monospace; --display:"Unbounded", system-ui, sans-serif; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.5 var(--mono); }
+  #warp { position:fixed; inset:0; width:100%; height:100%; display:block; }
+  .vignette { position:fixed; inset:0; pointer-events:none; background:radial-gradient(ellipse at 50% 38%, rgba(4,6,12,0) 0%, rgba(4,6,12,.55) 60%, rgba(4,6,12,.92) 100%); }
+  main { position:relative; max-width:800px; margin:0 auto; padding:28px 16px 64px; }
+  .brand { display:flex; align-items:center; gap:10px; font-family:var(--display); font-weight:700; font-size:16px; letter-spacing:.04em; }
+  .brand svg { width:44px; height:44px; flex:none; }
+  .hero { margin-top:72px; text-align:center; }
+  h1 { margin:0; font-family:var(--display); font-weight:500; font-size:clamp(32px, 6vw, 56px); line-height:1.1; letter-spacing:-.01em; }
+  p.sub { margin:18px auto 0; max-width:520px; color:var(--muted); }
+  form { margin:40px 0 0; display:flex; flex-wrap:wrap; gap:10px; }
+  .field { flex:1 1 360px; min-width:0; display:flex; align-items:center; gap:12px; height:60px; padding:0 20px; border:1px solid var(--accent); border-radius:6px; background:rgba(6,12,22,.82); box-shadow:0 0 0 4px rgba(127,232,255,.12), 0 0 40px rgba(127,232,255,.18); }
+  .field svg { flex:none; }
+  input { flex:1; min-width:0; background:transparent; border:0; outline:0; color:#fff; font:500 16px var(--mono); }
+  input::placeholder { color:#5f7788; }
+  button { height:60px; min-width:140px; padding:0 28px; border:0; border-radius:6px; background:var(--accent); color:#04101a; font:700 15px var(--mono); cursor:pointer; }
   button:disabled { opacity:.6; cursor:wait; }
-  #reply { margin:20px 0 8px; white-space:pre-wrap; }
-  h2 { font-size:1rem; margin:20px 0 8px; }
-  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px 14px; margin-bottom:10px; }
-  .card h3 { margin:0 0 2px; font-size:1rem; display:flex; justify-content:space-between; gap:8px; }
-  .score { color:var(--accent); font-weight:600; white-space:nowrap; }
-  .meta { color:var(--muted); font-size:.9rem; }
-  .gap { color:var(--warn); font-size:.9rem; }
-  ul.offers { list-style:none; padding:0; margin:8px 0 0; font-size:.9rem; }
-  ul.offers li { display:flex; justify-content:space-between; gap:8px; border-top:1px solid var(--line); padding:4px 0; }
-  .note { color:var(--muted); font-size:.85rem; margin-top:24px; }
+  :focus-visible { outline:2px solid #fff; outline-offset:2px; }
+  .status { margin-top:32px; display:flex; justify-content:space-between; align-items:baseline; gap:12px; font-size:13px; color:var(--muted); border-bottom:1px solid var(--line); padding-bottom:12px; }
+  .clock { font-size:22px; color:var(--accent); font-weight:500; }
+  #reply { margin:20px 0 4px; white-space:pre-wrap; }
+  h2 { margin:28px 0 4px; font-family:var(--display); font-weight:500; font-size:14px; letter-spacing:.02em; }
+  .row { animation:rowin .28s cubic-bezier(.2,.8,.2,1) both; padding:18px 4px; border-bottom:1px solid #14212e; }
+  .row-head { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:baseline; gap:4px 16px; }
+  .name { color:#fff; }
+  .price { font-size:18px; color:#fff; font-weight:500; }
+  .meta { color:#8fa6b8; font-size:12px; }
+  .score { color:var(--accent); }
+  .gap { color:var(--warn); font-size:12px; }
+  ul.offers { list-style:none; padding:0; margin:8px 0 0; font-size:12px; }
+  ul.offers li { display:flex; flex-wrap:wrap; justify-content:space-between; gap:4px 12px; padding:2px 0; }
+  a { color:var(--accent); }
+  a:hover { color:#fff; }
+  .note { margin-top:28px; color:#8fa6b8; font-size:12px; }
+  @keyframes rowin { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:none; } }
+  @media (prefers-reduced-motion: reduce) { .row { animation:none; } }
 </style>
 </head>
 <body>
+<canvas id="warp" aria-hidden="true"></canvas>
+<div class="vignette"></div>
 <main>
-  <h1>SSD picker</h1>
-  <p class="sub">Describe the SSD you want: type, capacity and budget. For example "1TB M.2 NVMe under $120" or "2TB external".</p>
+  <div class="brand"><svg viewBox="0 0 64 64" fill="none" aria-hidden="true"><rect x="7" y="22" width="40" height="20" rx="4" stroke="#8052ff" stroke-width="3"/><path d="M47 26.5h7M47 32h7M47 37.5h7" stroke="#8052ff" stroke-width="2.6" stroke-linecap="round"/><path d="M14.5 37L20 27l5.5 10z" fill="#ffb829"/></svg><span>SSD/PICKER</span></div>
+  <div class="hero">
+    <h1>The right SSD,<br>found at lightspeed.</h1>
+    <p class="sub">Type, capacity and budget, for example "1TB M.2 NVMe under $120" or "2TB external". We search Singapore retailers live and keep only drives that fit.</p>
+  </div>
   <form id="form">
-    <input id="box" autocomplete="off" maxlength="500" placeholder="What SSD do you want?" required>
-    <button id="go">Find</button>
+    <label for="box" style="position:absolute;left:-9999px">Describe the SSD you want</label>
+    <div class="field">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7fe8ff" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+      <input id="box" autocomplete="off" maxlength="500" placeholder="What SSD do you want?" required>
+    </div>
+    <button id="go">Search ⏎</button>
   </form>
-  <div id="reply" aria-live="polite"></div>
+  <div class="status"><span id="status" aria-live="polite">ready</span><span class="clock" id="clock"></span></div>
+  <div id="reply"></div>
   <div id="results"></div>
   <p class="note">Prices come from a live web search and are checked against the page text, but they can be out of date. Confirm on the seller's page before buying. Trustpilot scores are not available yet.</p>
 </main>
+
+<!-- three.js is cosmetic: if it fails to load, the page works without the warp. -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" integrity="sha384-CI3ELBVUz9XQO+97x6nwMDPosPR5XvsxW2ua7N1Xeygeh1IxtgqtCkGfQY9WWdHu" crossorigin="anonymous"></script>
 <script>
+  // --- Warp background: speed is the only knob. Idle cruise, boost while searching. ---
+  const warp = { boost: 0 };
+  (function initWarp() {
+    const canvas = document.getElementById("warp");
+    if (!window.THREE) return;
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const N = innerWidth < 700 ? 600 : 1400;
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setClearColor(0x04060c, 1);
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(70, 1, 0.1, 400);
+    const pos = new Float32Array(N * 6);
+    const col = new Float32Array(N * 6);
+    const base = [];
+    for (let i = 0; i < N; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const r = 4 + Math.pow(Math.random(), 0.7) * 60;
+      base.push({ x: Math.cos(a) * r, y: Math.sin(a) * r, z: -Math.random() * 300, v: 0.6 + Math.random() });
+      const hot = Math.random() < 0.18;
+      for (let k = 0; k < 2; k++) {
+        const o = i * 6 + k * 3;
+        col[o] = hot ? 0.5 : 0.7; col[o + 1] = hot ? 0.91 : 0.85; col[o + 2] = 1;
+      }
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute("color", new THREE.BufferAttribute(col, 3));
+    scene.add(new THREE.LineSegments(geo, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.9 })));
+
+    let speed = 0.3, last = performance.now();
+    function frame(now) {
+      const dt = Math.min(0.05, (now - last) / 1000); last = now;
+      const w = canvas.clientWidth, h = canvas.clientHeight;
+      if (canvas.width !== w || canvas.height !== h) {
+        renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+      }
+      const target = reduced ? 0.08 : 0.35 + warp.boost * 5;
+      speed += (target - speed) * Math.min(1, dt * (warp.boost ? 9 : 3));
+      const len = 1.5 + speed * 14;
+      for (let i = 0; i < N; i++) {
+        const b = base[i];
+        b.z += b.v * speed * 120 * dt;
+        if (b.z > 0) b.z -= 300;
+        const o = i * 6;
+        pos[o] = b.x; pos[o + 1] = b.y; pos[o + 2] = b.z;
+        pos[o + 3] = b.x; pos[o + 4] = b.y; pos[o + 5] = b.z - len * b.v;
+      }
+      geo.attributes.position.needsUpdate = true;
+      renderer.render(scene, camera);
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  })();
+
+  // --- App ---
   const form = document.getElementById("form");
   const box = document.getElementById("box");
   const go = document.getElementById("go");
+  const statusEl = document.getElementById("status");
+  const clockEl = document.getElementById("clock");
   const replyEl = document.getElementById("reply");
   const resultsEl = document.getElementById("results");
   let history = [];
+
+  box.addEventListener("input", () => {
+    warp.boost = 0.5;
+    clearTimeout(box.cool);
+    box.cool = setTimeout(() => { warp.boost = 0; }, 180);
+  });
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const message = box.value.trim();
     if (!message) return;
     go.disabled = true;
-    replyEl.textContent = "Searching the web. This can take up to a minute…";
+    resultsEl.replaceChildren();
+    replyEl.textContent = "";
+    statusEl.textContent = "searching retailers";
+    warp.boost = 1;
+    const t0 = performance.now();
+    const tick = setInterval(() => { clockEl.textContent = ((performance.now() - t0) / 1000).toFixed(2) + "s"; }, 50);
     try {
       const res = await fetch("/recommend", {
         method: "POST",
@@ -65,11 +163,16 @@
       if (!res.ok) throw new Error(data.error || "Request failed");
       history = [...history, ...data.messages].slice(-10);
       replyEl.textContent = data.reply;
-      render(data.results);
+      const count = render(data.results);
+      statusEl.textContent = count ? `${count} compatible ${count === 1 ? "match" : "matches"} shown` : "done";
       box.value = "";
     } catch (err) {
+      statusEl.textContent = "failed";
       replyEl.textContent = err.message;
     } finally {
+      clearInterval(tick);
+      clockEl.textContent = ((performance.now() - t0) / 1000).toFixed(2) + "s";
+      warp.boost = 0;
       go.disabled = false;
     }
   });
@@ -81,26 +184,31 @@
     return n;
   }
 
+  /** Returns how many products were drawn. */
   function render(results) {
     resultsEl.replaceChildren();
-    if (!results) return;
-    section("Within budget / matches", results.matches, (p) => null);
-    section("Fits specs, over budget", results.near_misses, (p) => `Over budget by $${p.over_budget_by}`);
-    section("Smaller than requested", results.spec_misses, (p) => p.misses.join("; "));
+    if (!results) return 0;
+    let shown = 0;
+    shown += section("Within budget / matches", results.matches, () => null);
+    shown += section("Fits specs, over budget", results.near_misses, (p) => `Over budget by $${p.over_budget_by}`);
+    shown += section("Smaller than requested", results.spec_misses, (p) => p.misses.join("; "));
+    return shown;
   }
 
   function section(title, products, gapText) {
-    if (!products.length) return;
+    if (!products.length) return 0;
     resultsEl.append(el("h2", title));
-    for (const p of products) {
-      const card = el("div", undefined, "card");
-      const h = el("h3");
-      h.append(el("span", `${p.name} · $${p.price_sgd}`));
-      if (p.match_score !== undefined) h.append(el("span", `${p.match_score}% match`, "score"));
-      card.append(h);
-      card.append(el("div", `${p.capacity_gb}GB · ${p.form_factor} · ${p.interface}`, "meta"));
+    products.forEach((p, i) => {
+      const row = el("div", undefined, "row");
+      row.style.animationDelay = `${i * 70}ms`;
+      const head = el("div", undefined, "row-head");
+      head.append(el("span", p.name, "name"), el("span", `$${p.price_sgd}`, "price"));
+      row.append(head);
+      const meta = el("div", `${p.capacity_gb}GB · ${p.form_factor} · ${p.interface}`, "meta");
+      if (p.match_score !== undefined) meta.append(" · ", el("span", `${p.match_score}% match`, "score"));
+      row.append(meta);
       const gap = gapText(p);
-      if (gap) card.append(el("div", gap, "gap"));
+      if (gap) row.append(el("div", gap, "gap"));
       const ul = el("ul", undefined, "offers");
       for (const o of p.offers) {
         const li = el("li");
@@ -108,13 +216,13 @@
         a.href = o.url;
         a.target = "_blank";
         a.rel = "noopener noreferrer";
-        li.append(a);
-        li.append(el("span", `$${o.price_sgd} · found ${new Date(o.retrieved_at).toLocaleString()}`, "meta"));
+        li.append(a, el("span", `$${o.price_sgd} · found ${new Date(o.retrieved_at).toLocaleString()}`, "meta"));
         ul.append(li);
       }
-      card.append(ul);
-      resultsEl.append(card);
-    }
+      row.append(ul);
+      resultsEl.append(row);
+    });
+    return products.length;
   }
 </script>
 </body>

@@ -4,8 +4,8 @@ import { callModel } from "./llm.js";
 const TAVILY_URL = "https://api.tavily.com/search";
 const SEARCH_TIMEOUT_MS = 15_000;
 const RESULTS_PER_QUERY = 6;
-const MAX_RESULTS = 12;
-const MAX_CONTENT_CHARS = 1200;
+const MAX_RESULTS = 10;
+const MAX_CONTENT_CHARS = 700;
 
 const KIND_LABEL = {
   internal_m2: "M.2 NVMe SSD",
@@ -182,6 +182,7 @@ Rules:
 - type is one of ${TYPES.join(", ")}; form_factor one of ${FORM_FACTORS.join(", ")}; interface one of ${INTERFACES.join(", ")}.
 - capacity_gb is a number (1TB is 1000).
 - Prefer well-known, current models from reputable brands. Skip unbranded or unclear listings.
+- List at most 10 candidates, keep every field short, and add no commentary.
 - Only list products that match the wanted type, form factor and interface. Capacity may be the requested size or larger.`,
     },
     {

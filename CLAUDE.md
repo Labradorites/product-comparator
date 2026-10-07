@@ -26,3 +26,8 @@ There is no stored catalogue. Offers come from a live web search per request (`s
 Prices are unverified web data: show the URL and retrieval time. Trustpilot scores are not built yet (`trustpilot` is `null`). Price history (story 3) is not built yet.
 
 Secrets: `OPENCODE_API_KEY` and `TAVILY_API_KEY`.
+
+## UI design
+Chosen direction: **"Hyperlane"** (option A of https://claude.ai/artifact/47NtBjVdHZSW8vK38nB7Xj). Near-black page, ice-cyan accent (`#7fe8ff`), Unbounded + JetBrains Mono, and a three.js warp-speed starfield behind the search box. Streaks accelerate while a request is in flight and a real elapsed-time clock runs; results stagger in as rows. The page is `src/ui.html` (single file, no build step).
+- three.js is loaded from cdnjs with an SRI hash. It is cosmetic only: the page must keep working if it fails to load. `prefers-reduced-motion` slows the warp.
+- Keep the guardrails: UI renders `results` from the tool, built with `textContent`, never model text as HTML.

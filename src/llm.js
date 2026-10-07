@@ -1,6 +1,7 @@
 const LLM_BASE_URL = "https://opencode.ai/zen/go/v1";
-const LLM_MODEL = "glm-5.3-flash";
-const LLM_TIMEOUT_MS = 30_000;
+// glm-5.3-flash took 13–75s on the same extraction prompt; this one stayed at 12–15s.
+const LLM_MODEL = "mimo-v2.6-flash";
+const LLM_TIMEOUT_MS = 60_000;
 
 /**
  * One chat completion. Pass `tools` (OpenAI function definitions) to allow tool
@@ -14,7 +15,11 @@ export async function callModel(messages, env, sessionId, tools) {
       authorization: `Bearer ${env.OPENCODE_API_KEY}`,
       "x-opencode-session": sessionId,
     },
-    body: JSON.stringify({ model: LLM_MODEL, messages, ...(tools ? { tools } : {}) }),
+    body: JSON.stringify({
+      model: LLM_MODEL,
+      messages,
+      ...(tools ? { tools } : {}),
+    }),
     signal: AbortSignal.timeout(LLM_TIMEOUT_MS),
   });
 
@@ -25,7 +30,9 @@ export async function callModel(messages, env, sessionId, tools) {
   const data = await res.json();
   const message = data?.choices?.[0]?.message;
   if (!message) {
-    throw new Error(`LLM returned no message: ${JSON.stringify(data).slice(0, 500)}`);
+    throw new Error(
+      `LLM returned no message: ${JSON.stringify(data).slice(0, 500)}`
+    );
   }
   return {
     role: "assistant",
