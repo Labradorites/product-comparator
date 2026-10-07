@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="SSD picker">
+  <rect x="7" y="22" width="40" height="20" rx="4" stroke="#8052ff" stroke-width="3"/>
+  <path d="M47 26.5h7M47 32h7M47 37.5h7" stroke="#8052ff" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M14.5 37L20 27l5.5 10z" fill="#ffb829"/>
+</svg>

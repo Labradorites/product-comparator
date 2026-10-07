@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 80" fill="none" role="img" aria-label="SSD picker">
+  <g transform="translate(0 8)">
+    <rect x="7" y="22" width="40" height="20" rx="4" stroke="#8052ff" stroke-width="3"/>
+    <path d="M47 26.5h7M47 32h7M47 37.5h7" stroke="#8052ff" stroke-width="2.6" stroke-linecap="round"/>
+    <path d="M14.5 37L20 27l5.5 10z" fill="#ffb829"/>
+  </g>
+  <text x="76" y="54" fill="#ffffff" font-family="'PP Neue Montreal', Inter, ui-sans-serif, system-ui, sans-serif" font-size="40" font-weight="400" letter-spacing="-1.6">SSD picker</text>
+</svg>
