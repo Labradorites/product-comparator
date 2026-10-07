@@ -1,4 +1,5 @@
 import ui from "./ui.html";
+import landing from "./landing.html";
 import { runLoop } from "./loop.js";
 import { validateHistory, MAX_MESSAGE_CHARS } from "./history.js";
 
@@ -8,6 +9,9 @@ export default {
 
     if (request.method === "GET" && pathname === "/") {
       return new Response(ui, { headers: { "content-type": "text/html; charset=utf-8" } });
+    }
+    if (request.method === "GET" && pathname === "/about") {
+      return new Response(landing, { headers: { "content-type": "text/html; charset=utf-8" } });
     }
     if (request.method === "POST" && pathname === "/recommend") {
       return handleRecommend(request, env);
