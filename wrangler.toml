@@ -1,0 +1,12 @@
+name = "ssd-picker"
+main = "src/index.js"
+compatibility_date = "2025-08-01"
+
+# Serve the page from a plain HTML file, imported as a string.
+[[rules]]
+type = "Text"
+globs = ["**/*.html"]
+fallthrough = false
+
+# Secret (OPENCODE_API_KEY) is set with `wrangler secret put` for deploys and
+# `.dev.vars` for local development. Never put it in this file.

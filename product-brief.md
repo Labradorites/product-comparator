@@ -64,3 +64,7 @@ The user types what they want into one box. An LLM turns it into filters, picks 
 - The match score formula (price closeness versus specification match) is not defined.
 - How Trustpilot scores are obtained and refreshed is undecided.
 - The 80% pass mark has no minimum number of participants yet.
+
+## To do
+
+- [ ] Evaluation: build a small, repeatable harness that runs fixed test requests (about 10 to 15, including a "nothing matches" case and an external-SSD case) through two variants (prompts, tool descriptions, input formats or models) and compares pass rates. Use code assertions for exact checks (product exists, price within budget, form factor and interface match). Optionally add Jev as a judge for fuzzier checks, after comparing it with about 10 hand-labelled cases.

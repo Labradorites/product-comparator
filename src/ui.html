@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SSD picker</title>
+<style>
+  :root { --bg:#fafafa; --fg:#1a1a1a; --muted:#666; --card:#fff; --line:#ddd; --accent:#1f6feb; --warn:#b45309; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#121212; --fg:#eee; --muted:#9a9a9a; --card:#1c1c1c; --line:#333; --accent:#5aa2ff; --warn:#f0a84b; }
+  }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.45 system-ui, sans-serif; }
+  main { max-width:720px; margin:0 auto; padding:24px 16px 64px; }
+  h1 { font-size:1.4rem; margin:0 0 4px; }
+  p.sub { color:var(--muted); margin:0 0 16px; }
+  form { display:flex; gap:8px; }
+  input { flex:1; padding:10px 12px; font:inherit; border:1px solid var(--line); border-radius:8px; background:var(--card); color:var(--fg); }
+  button { padding:10px 16px; font:inherit; border:0; border-radius:8px; background:var(--accent); color:#fff; cursor:pointer; }
+  button:disabled { opacity:.6; cursor:wait; }
+  #reply { margin:20px 0 8px; white-space:pre-wrap; }
+  h2 { font-size:1rem; margin:20px 0 8px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px 14px; margin-bottom:10px; }
+  .card h3 { margin:0 0 2px; font-size:1rem; display:flex; justify-content:space-between; gap:8px; }
+  .score { color:var(--accent); font-weight:600; white-space:nowrap; }
+  .meta { color:var(--muted); font-size:.9rem; }
+  .gap { color:var(--warn); font-size:.9rem; }
+  ul.offers { list-style:none; padding:0; margin:8px 0 0; font-size:.9rem; }
+  ul.offers li { display:flex; justify-content:space-between; gap:8px; border-top:1px solid var(--line); padding:4px 0; }
+  .note { color:var(--muted); font-size:.85rem; margin-top:24px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>SSD picker</h1>
+  <p class="sub">Describe the SSD you want: type, capacity and budget. For example "1TB M.2 NVMe under $120" or "2TB external".</p>
+  <form id="form">
+    <input id="box" autocomplete="off" maxlength="500" placeholder="What SSD do you want?" required>
+    <button id="go">Find</button>
+  </form>
+  <div id="reply" aria-live="polite"></div>
+  <div id="results"></div>
+  <p class="note">Prices, sources and Trustpilot scores are sample data until real snapshots are added.</p>
+</main>
+<script>
+  const form = document.getElementById("form");
+  const box = document.getElementById("box");
+  const go = document.getElementById("go");
+  const replyEl = document.getElementById("reply");
+  const resultsEl = document.getElementById("results");
+  let history = [];
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const message = box.value.trim();
+    if (!message) return;
+    go.disabled = true;
+    replyEl.textContent = "Searching…";
+    try {
+      const res = await fetch("/recommend", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ history, message }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Request failed");
+      history = [...history, ...data.messages].slice(-10);
+      replyEl.textContent = data.reply;
+      render(data.results);
+      box.value = "";
+    } catch (err) {
+      replyEl.textContent = err.message;
+    } finally {
+      go.disabled = false;
+    }
+  });
+
+  function el(tag, text, cls) {
+    const n = document.createElement(tag);
+    if (text !== undefined) n.textContent = text;
+    if (cls) n.className = cls;
+    return n;
+  }
+
+  function render(results) {
+    resultsEl.replaceChildren();
+    if (!results) return;
+    section("Within budget / matches", results.matches, (p) => null);
+    section("Fits specs, over budget", results.near_misses, (p) => `Over budget by $${p.over_budget_by}`);
+    section("Smaller than requested", results.spec_misses, (p) => p.misses.join("; "));
+  }
+
+  function section(title, products, gapText) {
+    if (!products.length) return;
+    resultsEl.append(el("h2", title));
+    for (const p of products) {
+      const card = el("div", undefined, "card");
+      const h = el("h3");
+      h.append(el("span", `${p.name} · $${p.price_sgd}`));
+      if (p.match_score !== undefined) h.append(el("span", `${p.match_score}% match`, "score"));
+      card.append(h);
+      card.append(el("div", `${p.capacity_gb}GB · ${p.form_factor} · ${p.interface}`, "meta"));
+      const gap = gapText(p);
+      if (gap) card.append(el("div", gap, "gap"));
+      const ul = el("ul", undefined, "offers");
+      for (const o of p.offers) {
+        const li = el("li");
+        const a = el("a", o.source);
+        a.href = o.url;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        li.append(a);
+        li.append(el("span", `$${o.price_sgd} · Trustpilot ${o.trustpilot} · ${o.checked_at}${o.sample ? " · sample" : ""}`, "meta"));
+        ul.append(li);
+      }
+      card.append(ul);
+      resultsEl.append(card);
+    }
+  }
+</script>
+</body>
+</html>

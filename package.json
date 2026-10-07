@@ -1,0 +1,16 @@
+{
+  "name": "ssd-picker",
+  "version": "0.1.0",
+  "description": "Helps someone in Singapore choose an internal or external SSD for their laptop.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "node --test"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}
